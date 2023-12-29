@@ -1,2 +1,2 @@
 # Minesweeper
- A Python project by Jack Tobia
+ A C++ project by Jack Tobia
