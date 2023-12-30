@@ -16,6 +16,7 @@
 #include <fstream>
 #include <vector>
 #include <limits>
+#include <random>
 
 using namespace std;
 
@@ -23,12 +24,16 @@ class Game
 {
     public:
         Game();
-        // TODO: play function, with command loop and print board
+        ~Game();
+        int play_game();
 
     private:
-        vector<vector<char> > real;
+        int **real; // The contents of the board
         int rows, cols, mines;
+
         void populate_board();
+        void print_board();
+        void fill_numbers();
 };
 
 #endif
