@@ -158,12 +158,31 @@ void Game::fill_numbers()
  */
 void Game::print_board()
 {
+    cout << endl << "     ";
+    for (int i = 0; i < cols; i++) {
+        if (i >= 8) {
+            cout << RED << i + 1 << " " << RESET;
+        } else {
+            cout << RED << i + 1 << "  " << RESET;
+        }
+    }
+    cout << endl << "   ";
+    for (int i = 0; i < cols; i++) {
+        cout << "---";
+    }
+    cout << endl;
     for (int i = 0; i < rows; i++) {
+        cout << BLUE << i + 1 << RESET;
+        if (i >= 9) {
+            cout << " | ";
+        } else {
+            cout << "  | ";
+        }
         for (int j = 0; j < cols; j++) {
             if (real[i][j] == -1) {
-                cout << "_ ";
+                cout << RED << "X  " << RESET;
             } else {
-                cout << real[i][j] << " ";
+                cout << real[i][j] << "  ";
             }
         }
         cout << endl;
