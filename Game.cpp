@@ -57,12 +57,22 @@ Game::Game()
  */
 Game::~Game()
 {
-    for (int i = 0; i < rows; i++) {
-        delete [] real[i];
-        delete [] board[i];
+    if (real != nullptr) {
+        for (int i = 0; i < rows; i++) {
+            if (real[i] != nullptr) {
+                delete [] real[i];
+            }
+        }
+        delete [] real;
     }
-    delete [] real;
-    delete [] board;
+    if (board != nullptr) {
+        for (int i = 0; i < rows; i++) {
+            if (board[i] != nullptr) {
+                delete [] board[i];
+            }
+        }
+        delete [] board;
+    }
 }
 
 /* play_game
