@@ -32,7 +32,7 @@ Game::Game()
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
-    /* Here I suggest that 16% of the board should have bombs, this is to make
+    /* Here I suggest that 16% of the board should have mines, this is to make
      * the board equally challenging and fun.
      */
     int suggestion = rows * cols * 16 / 100;
@@ -59,8 +59,10 @@ Game::~Game()
 {
     for (int i = 0; i < rows; i++) {
         delete [] real[i];
+        delete [] board[i];
     }
     delete [] real;
+    delete [] board;
 }
 
 /* play_game
@@ -108,6 +110,14 @@ void Game::populate_board()
     }
 
     fill_numbers();
+
+    board = new bool * [rows];
+    for (int i = 0; i < rows; i++) {
+        board[i] = new bool [cols];
+        for (int j = 0; j < cols; j++) {
+            board[i][j] = false;
+        }
+    }
 }
 
 /* fill_numbers
@@ -158,6 +168,37 @@ void Game::fill_numbers()
  */
 void Game::print_board()
 {
+    cout << endl;
+    for (int i = 0; i < rows; i++) {
+        // Print the x-axis of the board
+        cout << BLUE << i + 1 << RESET;
+        if (i >= 9) {
+            cout << " | ";
+        } else {
+            cout << "  | ";
+        }
+        // Print the cells on the board
+        for (int j = 0; j < cols; j++) {
+            /* The following conditional determines whether a cell should be
+             * revealed or not.
+             */
+            if (not board[i][j]) {
+                cout << DARK_GREY << CELL << "  " << RESET;
+            } else {
+                if (real[i][j] == -1) {
+                    cout << MINE << " " << RESET;
+                } else {
+                    color_num(real[i][j]);
+                }
+            }
+        }
+        cout << endl;
+    }
+    // Print the x-axis of the board
+    cout << "    ";
+    for (int i = 0; i < cols; i++) {
+        cout << "---";
+    }
     cout << endl << "     ";
     for (int i = 0; i < cols; i++) {
         if (i >= 8) {
@@ -166,25 +207,35 @@ void Game::print_board()
             cout << RED << i + 1 << "  " << RESET;
         }
     }
-    cout << endl << "   ";
-    for (int i = 0; i < cols; i++) {
-        cout << "---";
-    }
     cout << endl;
-    for (int i = 0; i < rows; i++) {
-        cout << BLUE << i + 1 << RESET;
-        if (i >= 9) {
-            cout << " | ";
-        } else {
-            cout << "  | ";
-        }
-        for (int j = 0; j < cols; j++) {
-            if (real[i][j] == -1) {
-                cout << RED << "X  " << RESET;
-            } else {
-                cout << real[i][j] << "  ";
-            }
-        }
-        cout << endl;
+}
+
+/* color_num
+ *    Purpose: Prints out the revealed numbers on the board with the correct
+ *             colorings.
+ * Parameters: An integer n representing the number to be printed.
+ *    Returns: Nothing
+ */
+void Game::color_num(int n) {
+    if (n == 0) {
+        cout << "   ";
+        return;
+    } else if (n == 1) {
+        cout << BLUE;
+    } else if (n == 2) {
+        cout << GREEN;
+    } else if (n == 3) {
+        cout << RED;
+    } else if (n == 4) {
+        cout << DARK_BLUE;
+    } else if (n == 5) {
+        cout << MAROON;
+    } else if (n == 6) {
+        cout << CYAN;
+    } else if (n == 7) {
+        cout << YELLOW;
+    } else if (n == 8) {
+        cout << MAGENTA;
     }
+    cout << n << "  " << RESET;
 }

@@ -15,7 +15,7 @@ using namespace std;
 
 int main() {
     Game game;
+    // TODO: Command loop
     cout << "Hope you had fun, have a nice day!\n";
-    // TODO: play functionality
     return 0;
 }
