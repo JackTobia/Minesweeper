@@ -17,6 +17,7 @@
 #include <vector>
 #include <limits>
 #include <random>
+#include <sstream>
 
 using namespace std;
 
@@ -49,10 +50,13 @@ class Game
         bool **board;           // The user's revealed cells
         int rows, cols, mines;
 
-        void populate_board();
+        void initialize_board();
+        void populate_board(int x, int y);
         void print_board();
         void fill_numbers();
         void color_num(int n);
+        bool check_board();
+        bool isValidInput(string &input, char &flag, int &x, int &y);
 };
 
 #endif

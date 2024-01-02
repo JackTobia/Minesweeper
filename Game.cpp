@@ -21,13 +21,13 @@ Game::Game()
 {
     cout << "Welcome to Minesweeper!\nBefore we begin, let's make a board!\n"
          << "How many rows? ";
-    while (not (cin >> rows) || rows <= 1) {
+    while (not (cin >> rows) or rows <= 1) {
         cout << "Invalid input. Please enter a positive integer (>1): ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
     cout << "How many columns? ";
-    while (not (cin >> cols) || cols <= 1) {
+    while (not (cin >> cols) or cols <= 1) {
         cout << "Invalid input. Please enter a positive integer (>1): ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -40,13 +40,13 @@ Game::Game()
         suggestion++;
     }
     cout << "How many mines? (suggestion: " << suggestion << ") ";
-    while (not (cin >> mines) || mines <= 0 || mines >= rows * cols) {
+    while (not (cin >> mines) or mines <= 0 or mines >= rows * cols) {
         cout << "Invalid number of mines. Please enter a positive integer "
              << "(from 1-" << rows * cols - 1 << "): ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
-    populate_board();
+    initialize_board();
     print_board();
 }
 
@@ -55,8 +55,7 @@ Game::Game()
  * Parameters: None
  *    Returns: Nothing
  */
-Game::~Game()
-{
+Game::~Game() {
     if (real != nullptr) {
         for (int i = 0; i < rows; i++) {
             if (real[i] != nullptr) {
@@ -80,20 +79,52 @@ Game::~Game()
  * Parameters:
  *    Returns:
  */
-int Game::play_game()
-{
-    // TODO
-    return 0;
+int Game::play_game() {
+    string input;
+    bool explosion = false, finished = false;
+    char flag = '\0';
+    int x, y;
+    getline(cin, input);
+    while (not isValidInput(input, flag, x, y)) {
+        cout << "Choose a cell in the format \"" << RED << "x " << BLUE
+             << "y" << RESET << "\": ";
+        getline(cin, input);
+    }
+    // TODO: reveal first box and boxes around it, which will limit max mines
+    populate_board(x, y);
+    while (not explosion and not finished) {
+        print_board();
+        cout << "Choose a cell in the format \"[f] " << RED << "x " << BLUE
+             << "y" << RESET << "\" (f = set a flag): ";
+        getline(cin, input);
+        while (not isValidInput(input, flag, x, y)) {
+            cout << "Choose a cell in the format \"[f] " << RED << "x " << BLUE
+                 << "y" << RESET << "\" (f = set a flag): ";
+            getline(cin, input);
+        }
+        board[x][y] = true;
+        finished = check_board();
+    }
+    if (explosion) {
+        cout << "BOOOM!!!! Game over.\n";
+        return 0;
+    }
+    return 1;
 }
 
-/* populate_board
- *    Purpose: Takes the user's inputted grid dimensions and number of mines,
- *             and builds the board for them to play on.
+/* initialize_board
+ *    Purpose: Create memory for the board values
  * Parameters: None
  *    Returns: Nothing
  */
-void Game::populate_board()
-{
+void Game::initialize_board() {
+    board = new bool * [rows];
+    for (int i = 0; i < rows; i++) {
+        board[i] = new bool [cols];
+        for (int j = 0; j < cols; j++) {
+            board[i][j] = false;
+        }
+    }
     real = new int * [rows];
     for (int i = 0; i < rows; i++) {
         real[i] = new int [cols];
@@ -101,7 +132,17 @@ void Game::populate_board()
             real[i][j] = 0;
         }
     }
+}
 
+/* populate_board
+ *    Purpose: Takes the user's inputted grid dimensions and number of mines,
+ *             and builds the board for them to play on.
+ * Parameters: Integers x and y, representing the first coordinates the user
+ *             selects so that the game can start from that point and the board
+ *             is built around it.
+ *    Returns: Nothing
+ */
+void Game::populate_board(int x, int y) {
     // Generate random mine positions by setting those positions to -1
     random_device rd;
     mt19937 gen(rd());
@@ -113,21 +154,13 @@ void Game::populate_board()
     while (placed < mines) {
         int randRow = disRows(gen);
         int randCol = disCols(gen);
-        if (real[randRow][randCol] == 0) {
+        if (real[randRow][randCol] == 0 and (randCol != x and randRow != y)) {
             real[randRow][randCol] = -1;
             placed++;
         }
     }
 
     fill_numbers();
-
-    board = new bool * [rows];
-    for (int i = 0; i < rows; i++) {
-        board[i] = new bool [cols];
-        for (int j = 0; j < cols; j++) {
-            board[i][j] = false;
-        }
-    }
 }
 
 /* fill_numbers
@@ -137,8 +170,7 @@ void Game::populate_board()
  * Parameters: None
  *    Returns: Nothing
  */
-void Game::fill_numbers()
-{
+void Game::fill_numbers() {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             if (real[i][j] != -1) {
@@ -176,8 +208,7 @@ void Game::fill_numbers()
  * Parameters: None
  *    Returns: Nothing
  */
-void Game::print_board()
-{
+void Game::print_board() {
     cout << endl;
     for (int i = 0; i < rows; i++) {
         // Print the x-axis of the board
@@ -248,4 +279,38 @@ void Game::color_num(int n) {
         cout << MAGENTA;
     }
     cout << n << "  " << RESET;
+}
+
+bool Game::check_board() {
+    int count = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (board[i][j]) {
+                count++;
+            }
+        }
+    }
+    if (count == rows * cols - mines) {
+        return true;
+    }
+    return false;
+}
+
+bool Game::isValidInput(string &input, char &flag, int &x, int &y) {
+    stringstream ss(input);
+    char firstChar;
+    ss >> firstChar;
+    if (isdigit(firstChar)) {
+        ss.clear();
+        ss.seekg(0);
+    } else {
+        flag = firstChar;
+    }
+    if (ss >> x >> y) {
+        if ((flag == 'f' or flag == '\0') and
+            (x > 0 and y > 0 and x <= cols and y <= rows)) {
+            return true;
+        }
+    }
+    return false;
 }
