@@ -20,14 +20,14 @@
 Game::Game()
 {
     cout << "Welcome to Minesweeper!\nBefore we begin, let's make a board!\n"
-         << "How many rows? ";
-    while (not (cin >> rows) or rows <= 1) {
+         << "How many rows? (Must be at least 5) ";
+    while (not (cin >> rows) or rows <= 4) {
         cout << "Invalid input. Please enter a positive integer (>1): ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
-    cout << "How many columns? ";
-    while (not (cin >> cols) or cols <= 1) {
+    cout << "How many columns? (Must be at least 5) ";
+    while (not (cin >> cols) or cols <= 4) {
         cout << "Invalid input. Please enter a positive integer (>1): ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -40,9 +40,9 @@ Game::Game()
         suggestion++;
     }
     cout << "How many mines? (suggestion: " << suggestion << ") ";
-    while (not (cin >> mines) or mines <= 0 or mines >= rows * cols) {
+    while (not (cin >> mines) or mines <= 0 or mines > rows * cols - 9) {
         cout << "Invalid number of mines. Please enter a positive integer "
-             << "(from 1-" << rows * cols - 1 << "): ";
+             << "(from 1-" << rows * cols - 9 << "): ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
@@ -90,8 +90,18 @@ int Game::play_game() {
              << "y" << RESET << "\": ";
         getline(cin, input);
     }
-    // TODO: reveal first box and boxes around it, which will limit max mines
-    populate_board(x, y);
+    // Indexing!
+    populate_board(x - 1, y - 1);
+    for (int i = x - 2; i < x + 1; i++) {
+        if (i >= 0 and i < rows) {
+            for (int j = y - 2; j < y + 1; j++) {
+                if (j >= 0 and j < cols) {
+                    board[i][j] = true;
+                }
+            }
+        }
+    }
+    board[x - 1][y - 1] = true;
     while (not explosion and not finished) {
         print_board();
         cout << "Choose a cell in the format \"[f] " << RED << "x " << BLUE
@@ -102,7 +112,7 @@ int Game::play_game() {
                  << "y" << RESET << "\" (f = set a flag): ";
             getline(cin, input);
         }
-        board[x][y] = true;
+        board[x - 1][y - 1] = true;
         finished = check_board();
     }
     if (explosion) {
@@ -154,7 +164,16 @@ void Game::populate_board(int x, int y) {
     while (placed < mines) {
         int randRow = disRows(gen);
         int randCol = disCols(gen);
-        if (real[randRow][randCol] == 0 and (randCol != x and randRow != y)) {
+        // First selected square can't have a mine, neither can the ones around
+        if (real[randRow][randCol] == 0
+            and not ((randCol == y and
+                        (randRow == x or randRow == x - 1 or randRow == x + 1))
+                     or (randCol == y + 1 and (randRow == x
+                                               or randRow == x - 1
+                                               or randRow == x + 1))
+                     or (randCol == y - 1 and (randRow == x
+                                               or randRow == x - 1
+                                               or randRow == x + 1)))) {
             real[randRow][randCol] = -1;
             placed++;
         }
@@ -306,9 +325,9 @@ bool Game::isValidInput(string &input, char &flag, int &x, int &y) {
     } else {
         flag = firstChar;
     }
-    if (ss >> x >> y) {
+    if (ss >> y >> x) {
         if ((flag == 'f' or flag == '\0') and
-            (x > 0 and y > 0 and x <= cols and y <= rows)) {
+            (x > 0 and y > 0 and x <= rows and y <= cols)) {
             return true;
         }
     }

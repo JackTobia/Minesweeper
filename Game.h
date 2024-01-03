@@ -57,6 +57,7 @@ class Game
         void color_num(int n);
         bool check_board();
         bool isValidInput(string &input, char &flag, int &x, int &y);
+        int reveal(int x, int y);
 };
 
 #endif
