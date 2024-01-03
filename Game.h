@@ -37,6 +37,10 @@ using namespace std;
 #define FLAG "\u2691"
 #define CELL "\u25A0"
 #define MINE "\U0001F4A3"
+#define BOOM "\U0001F4A5"
+
+#define EXPLOSION   "BOOOOM!!!!"
+#define WIN         "chicken dinner"
 
 class Game
 {
@@ -55,9 +59,9 @@ class Game
         void print_board();
         void fill_numbers();
         void color_num(int n);
-        bool check_board();
+        string check_board();
         bool isValidInput(string &input, char &flag, int &x, int &y);
-        int reveal(int x, int y);
+        int end_game(string &status);
 };
 
 #endif

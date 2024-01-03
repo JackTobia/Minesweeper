@@ -75,22 +75,21 @@ Game::~Game() {
 }
 
 /* play_game
- *    Purpose:
+ *    Purpose: TODO
  * Parameters:
  *    Returns:
  */
 int Game::play_game() {
     string input;
-    bool explosion = false, finished = false;
     char flag = '\0';
     int x, y;
+    // First turn (selecting a starting square)
     getline(cin, input);
     while (not isValidInput(input, flag, x, y)) {
         cout << "Choose a cell in the format \"" << RED << "x " << BLUE
              << "y" << RESET << "\": ";
         getline(cin, input);
     }
-    // Indexing!
     populate_board(x - 1, y - 1);
     for (int i = x - 2; i < x + 1; i++) {
         if (i >= 0 and i < rows) {
@@ -102,7 +101,9 @@ int Game::play_game() {
         }
     }
     board[x - 1][y - 1] = true;
-    while (not explosion and not finished) {
+    // Command Loop for after the first turn
+    string status = "keep going";
+    while (status != EXPLOSION and status != WIN) {
         print_board();
         cout << "Choose a cell in the format \"[f] " << RED << "x " << BLUE
              << "y" << RESET << "\" (f = set a flag): ";
@@ -113,12 +114,31 @@ int Game::play_game() {
             getline(cin, input);
         }
         board[x - 1][y - 1] = true;
-        finished = check_board();
+        status = check_board();
     }
-    if (explosion) {
-        cout << "BOOOM!!!! Game over.\n";
+    return end_game(status);
+}
+
+int Game::end_game(string &status) {
+    if (status == EXPLOSION) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (real[i][j] == -1) {
+                    board[i][j] = true;
+                }
+            }
+        }
+        print_board();
+        cout << endl << "BOOOM!!!! Game over.\n";
         return 0;
     }
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            board[i][j] = true;
+        }
+    }
+    print_board();
+    cout << endl << "Congratulations! You won!\n";
     return 1;
 }
 
@@ -178,7 +198,6 @@ void Game::populate_board(int x, int y) {
             placed++;
         }
     }
-
     fill_numbers();
 }
 
@@ -247,6 +266,8 @@ void Game::print_board() {
             } else {
                 if (real[i][j] == -1) {
                     cout << MINE << " " << RESET;
+                } else if (real[i][j] == -2) {
+                    cout << BOOM << " " << RESET;
                 } else {
                     color_num(real[i][j]);
                 }
@@ -300,19 +321,23 @@ void Game::color_num(int n) {
     cout << n << "  " << RESET;
 }
 
-bool Game::check_board() {
+string Game::check_board() {
     int count = 0;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             if (board[i][j]) {
+                if (real[i][j] == -1)  {
+                    real[i][j] = -2;
+                    return EXPLOSION;
+                }
                 count++;
             }
         }
     }
     if (count == rows * cols - mines) {
-        return true;
+        return WIN;
     }
-    return false;
+    return "keep going";
 }
 
 bool Game::isValidInput(string &input, char &flag, int &x, int &y) {
