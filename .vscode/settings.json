@@ -6,6 +6,7 @@
         "ostream": "cpp",
         "new": "cpp",
         "iosfwd": "cpp",
-        "istream": "cpp"
+        "istream": "cpp",
+        "complex": "cpp"
     }
 }

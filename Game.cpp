@@ -50,20 +50,12 @@ Game::Game()
     print_board();
 }
 
-/* Game (destructor)
+/* ~Game (destructor)
  *    Purpose: Frees all memory associated with the board.
  * Parameters: None
  *    Returns: Nothing
  */
 Game::~Game() {
-    if (real != nullptr) {
-        for (int i = 0; i < rows; i++) {
-            if (real[i] != nullptr) {
-                delete [] real[i];
-            }
-        }
-        delete [] real;
-    }
     if (board != nullptr) {
         for (int i = 0; i < rows; i++) {
             if (board[i] != nullptr) {
@@ -75,9 +67,9 @@ Game::~Game() {
 }
 
 /* play_game
- *    Purpose: TODO
- * Parameters:
- *    Returns:
+ *    Purpose: The command loop for the Minesweeper game.
+ * Parameters: None
+ *    Returns: An integer, which is 1 if the user wins the game, 0 otherwise.
  */
 int Game::play_game() {
     string input;
@@ -95,14 +87,13 @@ int Game::play_game() {
         if (i >= 0 and i < rows) {
             for (int j = y - 2; j < y + 1; j++) {
                 if (j >= 0 and j < cols) {
-                    board[i][j] = true;
+                    board[i][j].rev = true;
                 }
             }
         }
     }
-    board[x - 1][y - 1] = true;
+    string status = check_board();
     // Command Loop for after the first turn
-    string status = "keep going";
     while (status != EXPLOSION and status != WIN) {
         print_board();
         cout << "Choose a cell in the format \"[f] " << RED << "x " << BLUE
@@ -113,28 +104,35 @@ int Game::play_game() {
                  << "y" << RESET << "\" (f = set a flag): ";
             getline(cin, input);
         }
-        board[x - 1][y - 1] = true;
+        board[x - 1][y - 1].rev = true;
         status = check_board();
     }
     return end_game(status);
 }
 
+/* end_game
+ *    Purpose: Messages to indicate to the user whether they won or lost the
+ *             game after a game-ending move. This includes revealing all mine
+ *             locations.
+ * Parameters: A string representing the way in which the game is ending.
+ *    Returns: An integer, which is 1 if the user wins the game, 0 otherwise.
+ */
 int Game::end_game(string &status) {
     if (status == EXPLOSION) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                if (real[i][j] == -1) {
-                    board[i][j] = true;
+                if (board[i][j].val == -1) {
+                    board[i][j].rev = true;
                 }
             }
         }
         print_board();
-        cout << endl << "BOOOM!!!! Game over.\n";
+        cout << endl << "BOOOM!!!! Game over, you lose.\n";
         return 0;
     }
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            board[i][j] = true;
+            board[i][j].rev = true;
         }
     }
     print_board();
@@ -143,23 +141,17 @@ int Game::end_game(string &status) {
 }
 
 /* initialize_board
- *    Purpose: Create memory for the board values
+ *    Purpose: Create memory for the board Cells.
  * Parameters: None
  *    Returns: Nothing
  */
 void Game::initialize_board() {
-    board = new bool * [rows];
+    board = new Cell * [rows];
     for (int i = 0; i < rows; i++) {
-        board[i] = new bool [cols];
+        board[i] = new Cell [cols];
         for (int j = 0; j < cols; j++) {
-            board[i][j] = false;
-        }
-    }
-    real = new int * [rows];
-    for (int i = 0; i < rows; i++) {
-        real[i] = new int [cols];
-        for (int j = 0; j < cols; j++) {
-            real[i][j] = 0;
+            board[i][j].rev = false;
+            board[i][j].empty_check = false;
         }
     }
 }
@@ -185,7 +177,7 @@ void Game::populate_board(int x, int y) {
         int randRow = disRows(gen);
         int randCol = disCols(gen);
         // First selected square can't have a mine, neither can the ones around
-        if (real[randRow][randCol] == 0
+        if (board[randRow][randCol].val == 0
             and not ((randCol == y and
                         (randRow == x or randRow == x - 1 or randRow == x + 1))
                      or (randCol == y + 1 and (randRow == x
@@ -194,7 +186,7 @@ void Game::populate_board(int x, int y) {
                      or (randCol == y - 1 and (randRow == x
                                                or randRow == x - 1
                                                or randRow == x + 1)))) {
-            real[randRow][randCol] = -1;
+            board[randRow][randCol].val = -1;
             placed++;
         }
     }
@@ -204,37 +196,37 @@ void Game::populate_board(int x, int y) {
 /* fill_numbers
  *    Purpose: Takes the board filled with mines, and gives number values to
  *             non-mine spots in the board which represent the number of mines
- *             that surround the cell.
+ *             that surround the Cell.
  * Parameters: None
  *    Returns: Nothing
  */
 void Game::fill_numbers() {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            if (real[i][j] != -1) {
+            if (board[i][j].val != -1) {
                 if (i != 0) {
                     if (j != 0) {
-                        real[i][j] += (real[i - 1][j - 1] == -1);
+                        board[i][j].val += (board[i - 1][j - 1].val == -1);
                     }
-                    real[i][j] += (real[i - 1][j] == -1);
+                    board[i][j].val += (board[i - 1][j].val == -1);
                     if (j != cols - 1) {
-                        real[i][j] += (real[i - 1][j + 1] == -1);
+                        board[i][j].val += (board[i - 1][j + 1].val == -1);
                     }
                 }
                 if (j != 0) {
-                    real[i][j] += (real[i][j - 1] == -1);
+                    board[i][j].val += (board[i][j - 1].val == -1);
                     if (i != rows - 1) {
-                        real[i][j] += (real[i + 1][j - 1] == -1);
+                        board[i][j].val += (board[i + 1][j - 1].val == -1);
                     }
                 }
                 if (i != rows - 1) {
-                    real[i][j] += (real[i + 1][j] == -1);
+                    board[i][j].val += (board[i + 1][j].val == -1);
                     if (j != cols - 1) {
-                        real[i][j] += (real[i + 1][j + 1] == -1);
+                        board[i][j].val += (board[i + 1][j + 1].val == -1);
                     }
                 }
                 if (j != cols - 1) {
-                    real[i][j] += (real[i][j + 1] == -1);
+                    board[i][j].val += (board[i][j + 1].val == -1);
                 }
             }
         }
@@ -259,17 +251,17 @@ void Game::print_board() {
         // Print the cells on the board
         for (int j = 0; j < cols; j++) {
             /* The following conditional determines whether a cell should be
-             * revealed or not.
+             * revealed to the user or not.
              */
-            if (not board[i][j]) {
+            if (not board[i][j].rev) {
                 cout << DARK_GREY << CELL << "  " << RESET;
             } else {
-                if (real[i][j] == -1) {
+                if (board[i][j].val == -1) {
                     cout << MINE << " " << RESET;
-                } else if (real[i][j] == -2) {
+                } else if (board[i][j].val == -2) {
                     cout << BOOM << " " << RESET;
                 } else {
-                    color_num(real[i][j]);
+                    color_num(board[i][j].val);
                 }
             }
         }
@@ -321,13 +313,29 @@ void Game::color_num(int n) {
     cout << n << "  " << RESET;
 }
 
+/* check_board
+ *    Purpose: A method to check if the game has ended, whether that be a win,
+ *             a loss, or a continuation of the game.
+ * Parameters: None
+ *    Returns: A string representing the status of the game given the status
+ *             of the board.
+ */
 string Game::check_board() {
+    // If empty cell is revealed, make sure reveal all cells around it
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (board[i][j].rev and board[i][j].val == 0) {
+                recurse_reveal(i, j);
+            }
+        }
+    }
+    // Check to see if the game is over
     int count = 0;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            if (board[i][j]) {
-                if (real[i][j] == -1)  {
-                    real[i][j] = -2;
+            if (board[i][j].rev) {
+                if (board[i][j].val == -1)  {
+                    board[i][j].val = -2;
                     return EXPLOSION;
                 }
                 count++;
@@ -340,6 +348,63 @@ string Game::check_board() {
     return "keep going";
 }
 
+/* recurse_reveal
+ *    Purpose: This function takes in Cell coordinates and if the Cell is empty
+ *             on the board, then it reveals all the Cells around it, and then
+ *             those Cells must replicate this process.
+ * Parameters: Integers x and y, representing the coordinates of the Cell we
+ *             are checking for emptiness.
+ *    Returns: Nothing
+ */
+void Game::recurse_reveal(int x, int y) {
+    if (board[x][y].val == 0) {
+        if (board[x][y].empty_check) {
+            return;
+        }
+        board[x][y].empty_check = true;
+        if (x != 0) {
+            if (y != 0) {
+                board[x - 1][y - 1].rev = true;
+                recurse_reveal(x - 1, y - 1);
+            }
+            board[x - 1][y].rev = true;
+            recurse_reveal(x - 1, y);
+            if (y != cols - 1) {
+                board[x - 1][y + 1].rev = true;
+                recurse_reveal(x - 1, y + 1);
+            }
+        }
+        if (y != 0) {
+            board[x][y - 1].rev = true;
+            recurse_reveal(x, y - 1);
+            if (x != rows - 1) {
+                board[x + 1][y - 1].rev = true;
+                recurse_reveal(x + 1, y - 1);
+            }
+        }
+        if (x != rows - 1) {
+            board[x + 1][y].rev = true;
+            recurse_reveal(x + 1, y);
+            if (y != cols - 1) {
+                board[x + 1][y + 1].rev = true;
+                recurse_reveal(x + 1, y + 1);
+            }
+        }
+        if (y != cols - 1) {
+            board[x][y + 1].rev = true;
+            recurse_reveal(x, y + 1);
+        }
+    }
+}
+
+/* isValidInput
+ *    Purpose: Input validation for coordinates in command loop.
+ * Parameters: A string containing the user's inputted line, a character which
+ *             will hold onto the 'f' in the command if it is inputted, and
+ *             integers x and y, representing the coordinates of the Cell with
+ *             which the user interacts.
+ *    Returns: A boolean, which is true if the input is valid, false otherwise.
+ */
 bool Game::isValidInput(string &input, char &flag, int &x, int &y) {
     stringstream ss(input);
     char firstChar;

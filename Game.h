@@ -50,8 +50,13 @@ class Game
         int play_game();
 
     private:
-        int **real;             // The true contents of the board
-        bool **board;           // The user's revealed cells
+        struct Cell {
+            int val;            // Cell's value (bomb or number)
+            bool rev;           // True if cell is revealed to user
+            bool empty_check;   // True if empty cell has been checked
+        };
+
+        Cell **board;
         int rows, cols, mines;
 
         void initialize_board();
@@ -60,6 +65,7 @@ class Game
         void fill_numbers();
         void color_num(int n);
         string check_board();
+        void recurse_reveal(int x, int y);
         bool isValidInput(string &input, char &flag, int &x, int &y);
         int end_game(string &status);
 };
