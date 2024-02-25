@@ -297,7 +297,7 @@ void Game::print_board() {
          << endl;
 }
 
-/* color_num *
+/* color_num
  *    Purpose: Prints out the revealed numbers on the board with the correct
  *             colorings.
  * Parameters: An integer n representing the number to be printed.
