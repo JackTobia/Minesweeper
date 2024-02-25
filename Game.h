@@ -54,6 +54,7 @@ class Game
             int val;            // Cell's value (bomb or number)
             bool rev;           // True if cell is revealed to user
             bool empty_check;   // True if empty cell has been checked
+            bool flag;
         };
 
         Cell **board;

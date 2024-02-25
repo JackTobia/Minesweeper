@@ -104,8 +104,16 @@ int Game::play_game() {
                  << "y" << RESET << "\" (f = set a flag): ";
             getline(cin, input);
         }
-        board[x - 1][y - 1].rev = true;
+        if (flag == 'f') {
+            // Flags can only be placed on unrevealed cells
+            if (not board[x - 1][y - 1].rev) {
+                board[x - 1][y - 1].flag = not board[x - 1][y - 1].flag;
+            }
+        } else if (not board[x - 1][y - 1].flag) {
+            board[x - 1][y - 1].rev = true;
+        }
         status = check_board();
+        flag = '\0';
     }
     return end_game(status);
 }
@@ -152,6 +160,7 @@ void Game::initialize_board() {
         for (int j = 0; j < cols; j++) {
             board[i][j].rev = false;
             board[i][j].empty_check = false;
+            board[i][j].flag = false;
         }
     }
 }
@@ -239,6 +248,7 @@ void Game::fill_numbers() {
  *    Returns: Nothing
  */
 void Game::print_board() {
+    int flags_used = 0;
     cout << endl;
     for (int i = 0; i < rows; i++) {
         // Print the x-axis of the board
@@ -253,7 +263,10 @@ void Game::print_board() {
             /* The following conditional determines whether a cell should be
              * revealed to the user or not.
              */
-            if (not board[i][j].rev) {
+            if (board[i][j].flag) {
+                cout << RED << FLAG << "  " << RESET;
+                flags_used++;
+            } else if (not board[i][j].rev) {
                 cout << DARK_GREY << CELL << "  " << RESET;
             } else {
                 if (board[i][j].val == -1) {
@@ -280,7 +293,8 @@ void Game::print_board() {
             cout << RED << i + 1 << "  " << RESET;
         }
     }
-    cout << endl;
+    cout << endl << endl << RED << FLAG << RESET << ": " << mines - flags_used
+         << endl;
 }
 
 /* color_num
