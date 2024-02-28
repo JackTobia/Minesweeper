@@ -4,7 +4,7 @@
  *      Project 2
  *      by Jack Tobia, 12/29/2023
  *
- *      An implementation for the class Game, including... TODO
+ *      An implementation for the Game class.
  *
  */
 
@@ -22,13 +22,13 @@ Game::Game()
     cout << "Welcome to Minesweeper!\nBefore we begin, let's make a board!\n"
          << "How many rows? (Must be at least 5) ";
     while (not (cin >> rows) or rows <= 4) {
-        cout << "Invalid input. Please enter a positive integer (>1): ";
+        cout << "Invalid input. Please enter a positive integer (>4): ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
     cout << "How many columns? (Must be at least 5) ";
     while (not (cin >> cols) or cols <= 4) {
-        cout << "Invalid input. Please enter a positive integer (>1): ";
+        cout << "Invalid input. Please enter a positive integer (>4): ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }

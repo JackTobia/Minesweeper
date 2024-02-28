@@ -5,7 +5,13 @@
  *      by Jack Tobia, 12/29/2023
  *
  *      A header file for the Game class, which will hold the game board and
- *      all functionality necessary for the game. TODO
+ *      all functionality necessary for the game. Prompts the user for board
+ *      dimensions and number of mines, and runs the game. The user may place
+ *      flags on cells or choose to reveal them. If the user reveals a cell
+ *      with a mine behind it, the game is over and they lose. If the user
+ *      reveals all the non-mine cells they win. The program also checks for
+ *      valid input when the user selects board dimensions, cell coordinates,
+ *      and the number of mines.
  *
  */
 
@@ -51,7 +57,7 @@ class Game
 
     private:
         struct Cell {
-            int val;            // Cell's value (bomb or number)
+            int val;            // Cell's value (mine or number)
             bool rev;           // True if cell is revealed to user
             bool empty_check;   // True if empty cell has been checked
             bool flag;
